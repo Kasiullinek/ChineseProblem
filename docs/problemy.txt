@@ -1,0 +1,5 @@
+Algorytm znajduje cykl Eulera gdy liczba węzłów o nieparzystych krawędziach wynosi 0.
+Problem zaczyna się gdy liczba tych węzłów jest większa
+Kod Dijkstry działa gdy liczba punktów nieparzystych wynosi 2,
+ale nie gdy punktów będzie np. 4. Nie wiem jak ruszyć od punktu K04, K05 K06 (ogolne rozwiazanie.jpg).
+ 
