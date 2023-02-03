@@ -1,4 +1,4 @@
-3 2 Akademicka
-2 1 Marii Sk³odowskiej-Curie
-1 4 £u¿ycka
-4 3 Boles³awa Krzywoustego
+4 1 £u¿ycka
+1 2 Marii Sk³odowskiej-Curie
+2 3 Akademicka
+3 4 Boles³awa Krzywoustego

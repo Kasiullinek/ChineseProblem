@@ -110,6 +110,11 @@ Graph LoadGraph(const std::vector<inputFile>& vector) {
     return graph;
 }
 
+void AddEdge(Graph& graph, const int& node1, const int&node2, const int& length) {
+    graph[node1].insert({node2, length});
+    graph[node2].insert({node1, length});
+}
+
 //robocze
 void PrintGraph(const Graph& graph) {
 
@@ -147,14 +152,14 @@ std::vector<std::vector<int>> LoadMatrix(Graph& graph) {
         for (const auto& el : nodeE_Length) {
             int nodeF = el.first;
             int f = (nodeF)-1;
-            matrix[e][f] = 1;
-            matrix[f][e] = 1;
+            matrix[e][f]++;
+            matrix[f][e]++;
         }
     }
     return matrix;
 }
 
-std::vector<std::vector<int>> LoadMatrix2(const std::vector<inputFile>& vector, const Graph& graph) {
+std::vector<std::vector<int>> LoadMatrix2(const std::vector<inputFile>& vector,const Graph& graph) {
     size_t vectorSize = vector.size();
     size_t graphSize = graph.size();
 
@@ -177,7 +182,7 @@ std::vector<std::vector<int>> LoadMatrix2(const std::vector<inputFile>& vector, 
         std::set<std::pair<int, double>> nodeE_Length = i->second;
         for (const auto& el : nodeE_Length) {
             int nodeF = el.first;
-            int streetLength = el.second;
+            int streetLength = int(el.second);
             int f = (nodeF)-1;
             matrix[e][f] = streetLength;
             matrix[f][e] = streetLength;
@@ -229,26 +234,25 @@ bool IsGraphConnected(const size_t& numberOfStreets, const size_t& numberOfNodes
 
 int CountOddNodes(const Graph& graph) {
     size_t numberOfNodes = graph.size();
-    std::vector<int> listOfOddEvenNodes(numberOfNodes + 1);
+    std::vector<int> listOfNodes(numberOfNodes + 1);
     int oddNodesCounter = 0;
 
     for (auto i = graph.begin(); i != graph.end(); i++) {
         auto nodeI = i->first;
         std::set<std::pair<int, double>> nodeJ_Length = i->second;
         size_t numberOfNodes = nodeJ_Length.size();
-        listOfOddEvenNodes[nodeI] = int(numberOfNodes);
-        if ((listOfOddEvenNodes[nodeI] % 2) != 0) {
+        listOfNodes[nodeI] = int(numberOfNodes);
+        if ((listOfNodes[nodeI] % 2) != 0) {
             oddNodesCounter++;
         }
     }
     return oddNodesCounter;
 }
 
-int* LoadOddNodes(const Graph& graph, const int& numberOfOddNodes) {
+std::vector<int> LoadOddNodes(const Graph& graph, const int& numberOfOddNodes) {
     size_t numberOfNodes = graph.size();
     std::vector<int> listOfNodes(numberOfNodes + 1);
-    int* listOfOddNodes = new int[numberOfOddNodes + 1];
-
+    std::vector<int> listOfOddNodes(numberOfOddNodes);
     int oddNodesCounter = 0;
 
     for (auto i = graph.begin(); i != graph.end(); i++) {
@@ -262,8 +266,6 @@ int* LoadOddNodes(const Graph& graph, const int& numberOfOddNodes) {
         }
     }
     return listOfOddNodes;
-
-    delete[] listOfOddNodes;
 }
 
 //robocze
@@ -370,18 +372,47 @@ void MakeOutputFile(std::vector<std::pair<int, int>>& e, std::vector<inputFile>&
     }
 }
 
+std::vector<std::pair<int, int>> CombinePairs(const std::vector<int> listOfOddNodes) {
+    int listSize = listOfOddNodes.size();
+    int nrOfCombinations = (listSize*(listSize-1))/2;
+    int* listOfOddNodes2 = new int [listSize];
+    std::vector<std::pair<int, int>> listOfPairs(nrOfCombinations);
+    int iterator = 0;
+
+    for (int i = 0; i < listSize; i++) {
+        listOfOddNodes2[i] = listOfOddNodes[i];
+    }
+
+    for (int i = 0; i < listSize; i++) {
+        for (int j = 0; j < listSize; j++) {
+            if (i != j && i < j) {
+                listOfPairs[iterator].first = listOfOddNodes[i];
+                std::cout << listOfPairs[iterator].first << " ";
+                listOfPairs[iterator].second = listOfOddNodes2[j];
+                std::cout << listOfPairs[iterator].second << std::endl;
+                iterator++;
+            }
+        }
+    }
+
+    return listOfPairs;
+    
+    delete[] listOfOddNodes2;
+}
+
 void DijkstraAlgorithm(const std::vector<std::vector<int>>& matrix2, const int& startNode, const int& endNode) {
     int matrix2Size = matrix2.size();
     int* distance = new int[matrix2Size];
     int* pred = new int[matrix2Size];
+    int* pred2 = new int[matrix2Size];
     bool* visited = new bool[matrix2Size];
 
     for (int i = 0; i < matrix2Size; i++) {
         distance[i] = INT_MAX;
         pred[i] = startNode;
+        pred2[i] = startNode;
         visited[i] = false;
     }
-
     distance[startNode] = 0;
 
     for (int count = 0; count < matrix2Size - 1; count++) {
@@ -400,23 +431,31 @@ void DijkstraAlgorithm(const std::vector<std::vector<int>>& matrix2, const int& 
                 distance[nextNode] + matrix2[nextNode][i] < distance[i]) {
                 distance[i] = distance[nextNode] + matrix2[nextNode][i];
                 pred[i] = nextNode;
+                pred2[i] = nextNode;
             }
 
         }
-    }
+    };
 
-    std::cout << "\nDistance from node " << startNode + 1 << " to node " << endNode + 1 << " = " << distance[endNode];
-    std::cout << "\nPath: " << endNode + 1;
+    std::pair<std::vector<int>, std::vector<double>> sp;
+
+    std::cout << "\nDistance from " << startNode + 1 << " to node " << endNode + 1 << "=" << distance[endNode];
+    std::cout << "\nPath=" << endNode + 1;
     int j = endNode;
+    int k = endNode;
     do {
         j = pred[j];
         std::cout << "<-" << j + 1;
     } while (j != startNode);
+    std::cout << std::endl;
 
     delete[] distance;
     delete[] visited;
     delete[] pred;
+    delete[] pred2;
 }
+
+
 
 int main(int argc, char* argv[]) {
     const std::string fileWithSavedName = "N.txt";
@@ -461,12 +500,12 @@ int main(int argc, char* argv[]) {
                         bool isGraphConnected = IsGraphConnected(vectorSize, graphSize, matrix);
 
                         if (isGraphConnected) {
-                            int numberOfOddNodes = CountOddNodes(g);
+                            int nrOfOddNodes = CountOddNodes(g);
                             std::string stringStartPoint = LoadNew(fileWithSavedPoint);
                             int startPoint = std::stoi(stringStartPoint);
                             startPoint--;
 
-                            if (numberOfOddNodes == 0) {
+                            if (nrOfOddNodes == 0) {
                                 std::ofstream out{ fileWithEulerCycle };
                                 if (out) {
                                     FleuryAlgorithm(startPoint, vectorSize, graphSize, matrix, out);
@@ -484,12 +523,18 @@ int main(int argc, char* argv[]) {
                                 }
                                 fout.close();
                             }
-                            else if (numberOfOddNodes >= 2) {
+                            else if (nrOfOddNodes >= 2) {
                                 auto matrix2 = LoadMatrix2(v, g);
-                                auto n = LoadOddNodes(g, numberOfOddNodes);
-                                std::vector<std::pair<std::pair<int, int>, double>> pairs;
-                                // na razie dla dla dwóch punktów o nieparzystych krawędziach 
-                                DijkstraAlgorithm(matrix2, n[0] - 1, n[1] - 1);
+                                auto n = LoadOddNodes(g, nrOfOddNodes);
+                                auto l = CombinePairs(n);
+
+                                for (int i = 0; i < l.size(); i++) {
+                                     DijkstraAlgorithm(matrix2, l[i].first-1, l[i].second - 1);
+                                 }
+
+                                //int nrOfPairings = CountNrOfPairings(nrOfOddNodes);;
+                                 //Find the pairing with minimum shortest path connecting pairs.
+                                //Dla k  wierzchołków liczba skojarzeń wierzchołków w pary jest równa: S  = ( k  - 1 ) • ( k  - 3 ) • ( k  - 5 ) • ... • 7 • 5 • 3 • 1
                             }
                         }
                         else {
